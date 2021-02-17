@@ -1,5 +1,6 @@
 #include "lib-gamehack.h"
 #include <tlhelp32.h>
+#include <iostream>
 
 namespace libGameHack
 {
@@ -65,5 +66,41 @@ namespace libGameHack
     DWORD oldProt;
     VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
     return static_cast<MemoryProtectionType>(oldProt);
+  }
+
+  DWORD rebase(HANDLE process, DWORD address)
+  {
+    DWORD newBase;
+    // get the address of kernel32.dll
+    HMODULE k32 = GetModuleHandleW(L"kernel32.dll");
+    // get the address of GetModuleHandle()
+    LPVOID funcAdr = GetProcAddress(k32, "GetModuleHandleA");
+    if (!funcAdr)
+      funcAdr = GetProcAddress(k32, "GetModuleHandleW");
+    // create the thread
+    HANDLE thread = CreateRemoteThread(process, NULL, NULL, (LPTHREAD_START_ROUTINE)funcAdr, NULL, NULL, NULL);
+
+    // let the thread finish
+    WaitForSingleObject(thread, INFINITE);
+    // get the exit code
+    GetExitCodeThread(thread, &newBase);
+    // clean up the thread handle
+    CloseHandle(thread);
+
+    DWORD diff = address - 0x400'000;
+    return diff + newBase;
+  }
+
+  void showHowToDisableAslr()
+  {
+    std::cout << "To keep development simple, you can disable ASLR and use addresses with "
+              << "the transparent XP-base. To do so, enter a single command in the Visual "
+              << "Studio Command Prompt:"
+              << "\n"
+              << "\t> editbin /DYNAMICBASE:NO \"C:\\path\\to\\game.exe\""
+              << "\n"
+              << "To renable it, enter:"
+              << "\n"
+              << "\teditbin /DYNAMICBASE \"C:\\path\\to\\game.exe\"";
   }
 }

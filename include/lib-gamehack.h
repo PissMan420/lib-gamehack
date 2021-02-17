@@ -23,17 +23,17 @@ namespace libGameHack
 {
 
   /**
- * Search for the process id from a certain exe name. This function will return NULL if it can't find the pid
- * @example get_pid_from_bin_name(L"game.exe") 
- * @param exeName the name of the exe.
-*/
+   * Search for the process id from a certain exe name. This function will return NULL if it can't find the pid
+   * @example get_pid_from_bin_name(L"game.exe") 
+   * @param exeName the name of the exe.
+  */
   DWORD fetch_pid_from_bin_name(std::wstring exeName);
 
   /**
- * Fetch the pid of a process from it's window. The function will return NULL if it can't find the pid
- * @param window_name The name of the window. 
- * @example fetch_pid_from_window_name(L"METAL GEAR SOLID 5: THE PHANTOM PAIN")
-*/
+  * Fetch the pid of a process from it's window. The function will return NULL if it can't find the pid
+  * @param window_name The name of the window. 
+  * @example fetch_pid_from_window_name(L"METAL GEAR SOLID 5: THE PHANTOM PAIN")
+  */
   DWORD fetch_pid_from_window_name(std::wstring window_name);
 
   enum class DesiredAcess : DWORD
@@ -100,4 +100,13 @@ namespace libGameHack
 
   template <typename T>
   MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot);
+
+  /**
+   * Dynamically rebase addresses at runtime -- Bypass aslr in production
+   * @param process The handle of the process of the game
+   * @param address Base address of the game 
+  */
+  DWORD rebase(HANDLE process, DWORD address);
+
+  void showHowToDisableAslr();
 } // namespace libGameHack

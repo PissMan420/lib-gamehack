@@ -95,10 +95,7 @@ namespace libGameHack
   MemoryProtectionType protectMemory(HANDLE proc, DWORD adr, MemoryProtectionType prot)
   {
     DWORD oldProt;
-    if (T == void || T == void *)
-      VirtualProtectEx(proc, (LPVOID)adr, 0, prot, &oldProt);
-    else
-      VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
+    VirtualProtectEx(proc, (LPVOID)adr, sizeof(T), static_cast<DWORD>(prot), &oldProt);
     return static_cast<MemoryProtectionType>(oldProt);
   }
 

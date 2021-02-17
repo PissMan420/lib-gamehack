@@ -1,0 +1,1 @@
+add_library(lib-gamehack "lib-gamehack.cpp")

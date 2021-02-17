@@ -1,6 +1,4 @@
-#ifndef LIB_GAMEHACK_H
-#define LIB_GAMEHACK_H
-
+#pragma once
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -80,12 +78,11 @@ namespace libGameHack
     AllAcess = PROCESS_ALL_ACCESS,
   };
 
-  DEFINE_ENUM_FLAG_OPERATORS(DesiredAcess);
 
   /**
    * Fetch the handle of a proces. This function will return NULL if it fail to fetch the process memory
   */
-  HANDLE fetch_proces_handle(DWORD pid, DesiredAcess desiredAcess = DesiredAcess::VmRead | DesiredAcess::VmWrite | DesiredAcess::VmOperation, BOOL inheritHandle = FALSE);
+  HANDLE fetch_proces_handle(DWORD pid, DesiredAcess desiredAcess = (DesiredAcess)(static_cast<DWORD>(DesiredAcess::VmRead) | static_cast<DWORD>(DesiredAcess::VmWrite) | static_cast<DWORD>(DesiredAcess::VmOperation)), BOOL inheritHandle = FALSE);
 
   template <typename T>
   T readMemory(HANDLE process, LPVOID address);
@@ -137,5 +134,3 @@ namespace libGameHack
   T *pointMemory(LPVOID adr);
 
 } // namespace libGameHack
-
-#endif LIB_GAMEHACK_H

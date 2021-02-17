@@ -78,7 +78,6 @@ namespace libGameHack
     AllAcess = PROCESS_ALL_ACCESS,
   };
 
-
   /**
    * Fetch the handle of a proces. This function will return NULL if it fail to fetch the process memory
   */
@@ -86,6 +85,9 @@ namespace libGameHack
 
   template <typename T>
   T readMemory(HANDLE process, LPVOID address);
+
+  template <typename T>
+  T readMemory(HANDLE process, DWORD address);
 
   template <typename T>
   void writeMemory(HANDLE proc, LPVOID adr, T val);
@@ -98,6 +100,7 @@ namespace libGameHack
     WriteCopy = 0x08,
     Execute = 0x10,
     ExecuteRead = 0x20,
+    ExecuteReadWrite = 0x40,
     Guard = 0x100,
     NoCache = 0x200,
     WriteCombine = 0x400
@@ -105,6 +108,8 @@ namespace libGameHack
 
   template <typename T>
   MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot);
+  template <typename T>
+  MemoryProtectionType protectMemory(HANDLE proc, DWORD adr, MemoryProtectionType prot);
 
   /**
    * Dynamically rebase addresses at runtime -- Bypass aslr in production
@@ -128,11 +133,23 @@ namespace libGameHack
   void writeMemory(LPVOID adr, T val);
 
   /**
-   * Used to point memory when the cheat is a dll
+  * Used to point memory when the cheat is a dll
   */
   template <typename T>
   T *pointMemory(LPVOID adr);
 
+  /**
+   * Write Nop to a range of data
+   */
   template <int SIZE>
   void writeNop(DWORD address);
+
+  /**
+   * Hook the call o a function
+   * @param proc The process that the function to hook is in
+   * @param hookAt The address of the function to hook
+   * @param newFunc The function that is going to be replaced. Example: (DWORD)&someNewFunction
+   * @return The function that you hooked
+   */
+  DWORD callHook(HANDLE proc, DWORD hookAt, DWORD newFunc);
 } // namespace libGameHack

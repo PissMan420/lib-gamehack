@@ -152,4 +152,6 @@ namespace libGameHack
    * @return The function that you hooked
    */
   DWORD callHook(HANDLE proc, DWORD hookAt, DWORD newFunc);
+
+  uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t *modName);
 } // namespace libGameHack

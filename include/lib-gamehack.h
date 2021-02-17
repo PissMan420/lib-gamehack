@@ -109,6 +109,9 @@ namespace libGameHack
   DWORD rebase(HANDLE process, DWORD address);
 
   void showHowToDisableAslr();
+
+  
+  DWORD GetProcessThreadID(HANDLE Process);
 } // namespace libGameHack
 
 #endif LIB_GAMEHACK_H

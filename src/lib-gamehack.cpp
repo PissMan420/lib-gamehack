@@ -130,9 +130,16 @@ namespace libGameHack
   {
     return *((T *)adr);
   }
+
   template <typename T>
   void writeMemory(LPVOID adr, T val)
   {
     *((T *)adr) = val;
+  }
+
+  template <typename T>
+  T *pointMemory(LPVOID adr)
+  {
+    return ((T *)adr);
   }
 }

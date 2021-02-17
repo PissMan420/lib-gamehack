@@ -123,12 +123,18 @@ namespace libGameHack
   /** Used to read memory when the cheat is a dll */
   template <typename T>
   T readMemory(LPVOID adr);
-  
+
   /**
   * Used to write memory when the cheat is a dll
   */
   template <typename T>
   void writeMemory(LPVOID adr, T val);
+
+  /**
+   * Used to point memory when the cheat is a dll
+  */
+  template <typename T>
+  T *pointMemory(LPVOID adr);
 
 } // namespace libGameHack
 

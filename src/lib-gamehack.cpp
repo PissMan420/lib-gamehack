@@ -58,4 +58,12 @@ namespace libGameHack
   {
     WriteProcessMemory(proc, adr, &val, sizeof(T), NULL);
   }
+
+  template <typename T>
+  MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot)
+  {
+    DWORD oldProt;
+    VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
+    return static_cast<MemoryProtectionType>(oldProt);
+  }
 }

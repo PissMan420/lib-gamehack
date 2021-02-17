@@ -76,10 +76,28 @@ namespace libGameHack
    * Fetch the handle of a proces. This function will return NULL if it fail to fetch the process memory
   */
   HANDLE fetch_proces_handle(DWORD pid, DesiredAcess desiredAcess = DesiredAcess::VmRead | DesiredAcess::VmWrite | DesiredAcess::VmOperation, BOOL inheritHandle = FALSE);
-  
-  template<typename T>
+
+  template <typename T>
   T readMemory(HANDLE process, LPVOID address);
 
   template <typename T>
   void writeMemory(HANDLE proc, LPVOID adr, T val);
+
+  enum class MemoryProtectionType : DWORD
+  {
+    NoAcess = 0x01,
+    ReadOnly = 0x02,
+    ReadWrite = 0x04,
+    WriteCopy = 0x08,
+    Execute = 0x10,
+    ExecuteRead = 0x20,
+    ReadWrite = 0x40,
+    WriteCopy = 0x80,
+    Guard = 0x100,
+    NoCache = 0x200,
+    WriteCombine = 0x400
+  };
+
+  template <typename T>
+  MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot);
 } // namespace libGameHack

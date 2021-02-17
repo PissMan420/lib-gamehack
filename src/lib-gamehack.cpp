@@ -124,4 +124,15 @@ namespace libGameHack
     CloseHandle(snapshot);
     return NULL;
   }
+
+  template <typename T>
+  T readMemory(LPVOID adr)
+  {
+    return *((T *)adr);
+  }
+  template <typename T>
+  void writeMemory(LPVOID adr, T val)
+  {
+    *((T *)adr) = val;
+  }
 }

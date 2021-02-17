@@ -21,6 +21,14 @@
   }
 #endif
 
+/**
+* Read a variable at address in which you can use as a variable. I recommend to only use this in DLLs
+* 
+* @example
+* DWORD value = READ_ADDRESS(0xDEADBEEF); // read a DWORD from adr
+* READ_ADDRESS(0xDEADBEEF) = 1234;        // write 1234 to DWORD adr
+*/
+#define READ_ADDRESS(addr, type) *((type *)addr)
 namespace libGameHack
 {
 
@@ -110,8 +118,14 @@ namespace libGameHack
 
   void showHowToDisableAslr();
 
-  
   DWORD GetProcessThreadID(HANDLE Process);
+
+  template <typename T>
+  T readMemory(LPVOID adr);
+
+  template <typename T>
+  void writeMemory(LPVOID adr, T val);
+
 } // namespace libGameHack
 
 #endif LIB_GAMEHACK_H

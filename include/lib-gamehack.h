@@ -1,4 +1,6 @@
-#pragma once
+#ifndef LIB_GAMEHACK_H
+#define LIB_GAMEHACK_H
+
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -91,8 +93,6 @@ namespace libGameHack
     WriteCopy = 0x08,
     Execute = 0x10,
     ExecuteRead = 0x20,
-    ReadWrite = 0x40,
-    WriteCopy = 0x80,
     Guard = 0x100,
     NoCache = 0x200,
     WriteCombine = 0x400
@@ -110,3 +110,5 @@ namespace libGameHack
 
   void showHowToDisableAslr();
 } // namespace libGameHack
+
+#endif LIB_GAMEHACK_H

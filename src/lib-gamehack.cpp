@@ -101,7 +101,7 @@ namespace libGameHack
               << "\n"
               << "To renable it, enter:"
               << "\n"
-              << "\teditbin /DYNAMICBASE \"C:\\path\\to\\game.exe\"";
+              << "\t> editbin /DYNAMICBASE \"C:\\path\\to\\game.exe\"";
   }
 
   DWORD GetProcessThreadID(HANDLE Process)
@@ -141,5 +141,15 @@ namespace libGameHack
   T *pointMemory(LPVOID adr)
   {
     return ((T *)adr);
+  }
+
+  template <int SIZE>
+  void writeNop(DWORD address)
+  {
+    auto oldProtection =
+        protectMemory<BYTE[SIZE]>(address, PAGE_EXECUTE_READWRITE);
+    for (int i = 0; i < SIZE; i++)
+      writeMemory<BYTE>(address + i, 0x90);
+    protectMemory<BYTE[SIZE]>(address, oldProtection);
   }
 }

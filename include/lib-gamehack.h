@@ -133,4 +133,6 @@ namespace libGameHack
   template <typename T>
   T *pointMemory(LPVOID adr);
 
+  template <int SIZE>
+  void writeNop(DWORD address);
 } // namespace libGameHack

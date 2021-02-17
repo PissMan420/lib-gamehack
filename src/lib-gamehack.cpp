@@ -55,16 +55,50 @@ namespace libGameHack
   }
 
   template <typename T>
+  T readMemory(HANDLE process, DWORD address)
+  {
+    T val;
+    ReadProcessMemory(process, (LPVOID)address, &val, sizeof(T), NULL);
+    return val;
+  }
+
+  template <typename T>
   void writeMemory(HANDLE proc, LPVOID adr, T val)
   {
     WriteProcessMemory(proc, adr, &val, sizeof(T), NULL);
   }
 
   template <typename T>
+  void writeMemory(HANDLE proc, DWORD adr, T val)
+  {
+    WriteProcessMemory(proc, (LPVOID) adr, &val, sizeof(T), NULL);
+  }
+
+  template <typename T>
+  void writeMemory(LPVOID adr, T val)
+  {
+    *((T *)adr) = val;
+  }
+
+  template <typename T>
   MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot)
   {
     DWORD oldProt;
-    VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
+    if (T == void || T == void *)
+      VirtualProtectEx(proc, adr, 0, prot, &oldProt);
+    else
+      VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
+    return static_cast<MemoryProtectionType>(oldProt);
+  }
+
+  template <typename T>
+  MemoryProtectionType protectMemory(HANDLE proc, DWORD adr, MemoryProtectionType prot)
+  {
+    DWORD oldProt;
+    if (T == void || T == void *)
+      VirtualProtectEx(proc, (LPVOID)adr, 0, prot, &oldProt);
+    else
+      VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
     return static_cast<MemoryProtectionType>(oldProt);
   }
 
@@ -132,12 +166,6 @@ namespace libGameHack
   }
 
   template <typename T>
-  void writeMemory(LPVOID adr, T val)
-  {
-    *((T *)adr) = val;
-  }
-
-  template <typename T>
   T *pointMemory(LPVOID adr)
   {
     return ((T *)adr);
@@ -151,5 +179,18 @@ namespace libGameHack
     for (int i = 0; i < SIZE; i++)
       writeMemory<BYTE>(address + i, 0x90);
     protectMemory<BYTE[SIZE]>(address, oldProtection);
+  }
+
+  DWORD callHook(HANDLE proc, DWORD hookAt, DWORD newFunc)
+  {
+    DWORD newOffset = newFunc - hookAt - 5;
+
+    auto oldProtection = protectMemory<DWORD>(proc, hookAt + 1, MemoryProtectionType::ExecuteReadWrite);
+
+    DWORD originalOffset = readMemory<DWORD>(proc, hookAt + 1);
+    writeMemory<DWORD>(proc, hookAt + 1, newOffset);
+    protectMemory<DWORD>(proc, hookAt + 1, oldProtection);
+
+    return originalOffset + hookAt + 5;
   }
 }

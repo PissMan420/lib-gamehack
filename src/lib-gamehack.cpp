@@ -71,7 +71,7 @@ namespace libGameHack
   template <typename T>
   void writeMemory(HANDLE proc, DWORD adr, T val)
   {
-    WriteProcessMemory(proc, (LPVOID) adr, &val, sizeof(T), NULL);
+    WriteProcessMemory(proc, (LPVOID)adr, &val, sizeof(T), NULL);
   }
 
   template <typename T>
@@ -178,6 +178,16 @@ namespace libGameHack
     protectMemory<BYTE[SIZE]>(address, oldProtection);
   }
 
+  template <int SIZE>
+  void writeNop(HANDLE proc, DWORD address)
+  {
+    auto oldProtection =
+        protectMemory<BYTE[SIZE]>(handle, address, PAGE_EXECUTE_READWRITE);
+    for (int i = 0; i < SIZE; i++)
+      writeMemory<BYTE>(handle, address + i, 0x90);
+    protectMemory<BYTE[SIZE]>(handle, address, oldProtection);
+  }
+
   DWORD callHook(HANDLE proc, DWORD hookAt, DWORD newFunc)
   {
     DWORD newOffset = newFunc - hookAt - 5;
@@ -213,5 +223,17 @@ namespace libGameHack
     }
     CloseHandle(hSnap);
     return modBaseAddr;
+  }
+
+  DWORD hookVF(HANDLE process, DWORD classInst, DWORD funcIndex, DWORD newFunc)
+  {
+    DWORD VFTable = readMemory<DWORD>(process, classInst);
+    DWORD hookAt = VFTable + funcIndex * sizeof(DWORD);
+
+    auto oldProtection = protectMemory<DWORD>(process, hookAt, MemoryProtectionType::ReadWrite);
+    DWORD originalFunc = readMemory<DWORD>(process, hookAt);
+    writeMemory<DWORD>(process, hookAt, newFunc);
+    protectMemory<DWORD>(process, hookAt, oldProtection);
+    return originalFunc;
   }
 }

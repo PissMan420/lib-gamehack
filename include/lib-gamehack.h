@@ -145,6 +145,12 @@ namespace libGameHack
   void writeNop(DWORD address);
 
   /**
+   * Write Nop to a range of data
+   */
+  template <int SIZE>
+  void writeNop(HANDLE proc, DWORD address);
+
+  /**
    * Hook the call o a function
    * @param proc The process that the function to hook is in
    * @param hookAt The address of the function to hook
@@ -154,4 +160,6 @@ namespace libGameHack
   DWORD callHook(HANDLE proc, DWORD hookAt, DWORD newFunc);
 
   uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t *modName);
+
+  DWORD hookVF(HANDLE process, DWORD classInst, DWORD funcIndex, DWORD newFunc);
 } // namespace libGameHack

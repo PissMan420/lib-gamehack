@@ -163,6 +163,12 @@ namespace libGameHack
   }
 
   template <typename T>
+  T readMemory(DWORD adr)
+  {
+    return *((T *)adr);
+  }
+
+  template <typename T>
   T *pointMemory(LPVOID adr)
   {
     return ((T *)adr);

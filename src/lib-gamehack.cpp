@@ -81,22 +81,22 @@ namespace libGameHack
   }
 
   template <typename T>
-  MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot)
+  ProtectMemoryArg protectMemory(HANDLE proc, LPVOID adr, ProtectMemoryArg prot)
   {
     DWORD oldProt;
     if (T == void || T == void *)
       VirtualProtectEx(proc, adr, 0, prot, &oldProt);
     else
       VirtualProtectEx(proc, adr, sizeof(T), prot, &oldProt);
-    return static_cast<MemoryProtectionType>(oldProt);
+    return static_cast<ProtectMemoryArg>(oldProt);
   }
 
   template <typename T>
-  MemoryProtectionType protectMemory(HANDLE proc, DWORD adr, MemoryProtectionType prot)
+  ProtectMemoryArg protectMemory(HANDLE proc, DWORD adr, ProtectMemoryArg prot)
   {
     DWORD oldProt;
     VirtualProtectEx(proc, (LPVOID)adr, sizeof(T), static_cast<DWORD>(prot), &oldProt);
-    return static_cast<MemoryProtectionType>(oldProt);
+    return static_cast<ProtectMemoryArg>(oldProt);
   }
 
   DWORD rebase(HANDLE process, DWORD address)
@@ -178,6 +178,12 @@ namespace libGameHack
     return ((T *)adr);
   }
 
+  template <typename T>
+  T *pointMemory(DWORD adr)
+  {
+    return ((T *)adr);
+  }
+
   template <int SIZE>
   void writeNop(DWORD address)
   {
@@ -202,7 +208,7 @@ namespace libGameHack
   {
     DWORD newOffset = newFunc - hookAt - 5;
 
-    auto oldProtection = protectMemory<DWORD>(proc, hookAt + 1, MemoryProtectionType::ExecuteReadWrite);
+    auto oldProtection = protectMemory<DWORD>(proc, hookAt + 1, ProtectMemoryArg::ExecuteReadWrite);
 
     DWORD originalOffset = readMemory<DWORD>(proc, hookAt + 1);
     writeMemory<DWORD>(proc, hookAt + 1, newOffset);
@@ -240,10 +246,51 @@ namespace libGameHack
     DWORD VFTable = readMemory<DWORD>(process, classInst);
     DWORD hookAt = VFTable + funcIndex * sizeof(DWORD);
 
-    auto oldProtection = protectMemory<DWORD>(process, hookAt, MemoryProtectionType::ReadWrite);
+    auto oldProtection = protectMemory<DWORD>(process, hookAt, ProtectMemoryArg::ReadWrite);
     DWORD originalFunc = readMemory<DWORD>(process, hookAt);
     writeMemory<DWORD>(process, hookAt, newFunc);
     protectMemory<DWORD>(process, hookAt, oldProtection);
     return originalFunc;
+  }
+
+  DWORD hookIAT(const char *funcName, DWORD newFunc)
+  {
+    DWORD baseAddr = (DWORD)GetModuleHandle(NULL);
+    HANDLE proc = GetModuleHandle(NULL);
+
+    auto dosHeader = pointMemory<IMAGE_DOS_HEADER>(baseAddr);
+    if (dosHeader->e_magic != 0x5A4D)
+      return 0;
+    auto optHeader = pointMemory<IMAGE_OPTIONAL_HEADER>(baseAddr + dosHeader->e_lfanew + 24);
+    if (optHeader->Magic != 0x10B)
+      return 0;
+    auto IAT =
+        optHeader->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (IAT.Size == 0 || IAT.VirtualAddress == 0)
+      return 0;
+
+    auto impDesc = pointMemory<IMAGE_IMPORT_DESCRIPTOR>(baseAddr + IAT.VirtualAddress);
+    while (impDesc->FirstThunk)
+    {
+      auto thunkData = pointMemory<IMAGE_THUNK_DATA>(baseAddr + impDesc->OriginalFirstThunk);
+      int n = 0;
+      while (thunkData->u1.Function)
+      {
+        char *importFuncName = pointMemory<char>(baseAddr + (DWORD)thunkData->u1.AddressOfData + 2);
+        if (strcmp(importFuncName, funcName) == 0)
+        {
+          auto vfTable = pointMemory<DWORD>(baseAddr + impDesc->FirstThunk);
+          DWORD original = vfTable[n];
+          auto oldProtection =
+              protectMemory<DWORD>(proc, (DWORD)&vfTable[n], ProtectMemoryArg::ReadWrite);
+          vfTable[n] = newFunc;
+          protectMemory<DWORD>(proc, (DWORD)&vfTable[n], oldProtection);
+          return original;
+        }
+        n++;
+        thunkData++;
+      }
+      impDesc++;
+    }
   }
 }

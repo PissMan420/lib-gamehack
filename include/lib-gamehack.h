@@ -30,7 +30,7 @@
 namespace libGameHack
 {
 
-  enum class MemoryProtectionType : DWORD
+  enum class ProtectMemoryArg : DWORD
   {
     NoAcess = 0x01,
     ReadOnly = 0x02,
@@ -111,9 +111,9 @@ namespace libGameHack
   T readMemory(DWORD adr);
 
   template <typename T>
-  MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot);
+  ProtectMemoryArg protectMemory(HANDLE proc, LPVOID adr, ProtectMemoryArg prot);
   template <typename T>
-  MemoryProtectionType protectMemory(HANDLE proc, DWORD adr, MemoryProtectionType prot);
+  ProtectMemoryArg protectMemory(HANDLE proc, DWORD adr, ProtectMemoryArg prot);
 
   /**
    * Dynamically rebase addresses at runtime -- Bypass aslr in production
@@ -141,6 +141,10 @@ namespace libGameHack
   template <typename T>
   T *pointMemory(LPVOID adr);
 
+  template <typename T>
+  T *pointMemory(DWORD adr);
+
+
   /**
    * Write Nop to a range of data
    */
@@ -164,5 +168,25 @@ namespace libGameHack
 
   uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t *modName);
 
+  /**
+   * Hook an virtual function. 
+  */
   DWORD hookVF(HANDLE process, DWORD classInst, DWORD funcIndex, DWORD newFunc);
+
+  /**
+   * Hook an imported function. This function only work with dll mods
+   * @param funcName The function name of the function to hook
+   * @param newFunc An pointer to the function that is going to hook the function
+   * @return The old function
+   * @example
+   * VOID WINAPI newSleepFunction(DWORD ms)
+   * {
+   *   // do thread-sensitive things
+   *     originalSleep(ms);
+   * }
+   * 
+   * typedef VOID (WINAPI _origSleep)(DWORD ms);
+   * _origSleep* originalSleep = (_origSleep*)hookIAT("Sleep", (DWORD)&newSleepFunction);
+  */
+  DWORD hookIAT(const char *funcName, DWORD newFunc);
 } // namespace libGameHack

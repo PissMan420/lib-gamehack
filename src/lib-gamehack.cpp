@@ -124,15 +124,19 @@ namespace libGameHack
 
   void showHowToDisableAslr()
   {
-    std::cout << "To keep development simple, you can disable ASLR and use addresses with "
-              << "the transparent XP-base. To do so, enter a single command in the Visual "
-              << "Studio Command Prompt:"
-              << "\n"
-              << "\t> editbin /DYNAMICBASE:NO \"C:\\path\\to\\game.exe\""
-              << "\n"
-              << "To renable it, enter:"
-              << "\n"
-              << "\t> editbin /DYNAMICBASE \"C:\\path\\to\\game.exe\"";
+    const char *instruction = "To keep development simple, you can disable ASLR and use addresses with "
+                              "the transparent XP-base. To do so, enter a single command in the Visual "
+                              "Studio Command Prompt:"
+                              "\n"
+                              "\t> editbin /DYNAMICBASE:NO \"C:\\path\\to\\game.exe\""
+                              "\n"
+                              "To renable it, enter:"
+                              "\n"
+                              "\t> editbin /DYNAMICBASE \"C:\\path\\to\\game.exe\"";
+    if (GetActiveWindow() != NULL)
+      MessageBoxA(NULL, instruction, "How to disable ASLR", MB_ICONASTERISK);
+    else
+      std::cout << instruction << "\n";
   }
 
   DWORD GetProcessThreadID(HANDLE Process)

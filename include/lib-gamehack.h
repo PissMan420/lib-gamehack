@@ -30,19 +30,19 @@
 namespace libGameHack
 {
 
-  /**
-   * Search for the process id from a certain exe name. This function will return NULL if it can't find the pid
-   * @example get_pid_from_bin_name(L"game.exe") 
-   * @param exeName the name of the exe.
-  */
-  DWORD fetch_pid_from_bin_name(std::wstring exeName);
-
-  /**
-  * Fetch the pid of a process from it's window. The function will return NULL if it can't find the pid
-  * @param window_name The name of the window. 
-  * @example fetch_pid_from_window_name(L"METAL GEAR SOLID 5: THE PHANTOM PAIN")
-  */
-  DWORD fetch_pid_from_window_name(std::wstring window_name);
+  enum class MemoryProtectionType : DWORD
+  {
+    NoAcess = 0x01,
+    ReadOnly = 0x02,
+    ReadWrite = 0x04,
+    WriteCopy = 0x08,
+    Execute = 0x10,
+    ExecuteRead = 0x20,
+    ExecuteReadWrite = 0x40,
+    Guard = 0x100,
+    NoCache = 0x200,
+    WriteCombine = 0x400
+  };
 
   enum class DesiredAcess : DWORD
   {
@@ -79,6 +79,20 @@ namespace libGameHack
   };
 
   /**
+   * Search for the process id from a certain exe name. This function will return NULL if it can't find the pid
+   * @example get_pid_from_bin_name(L"game.exe") 
+   * @param exeName the name of the exe.
+  */
+  DWORD fetch_pid_from_bin_name(std::wstring exeName);
+
+  /**
+  * Fetch the pid of a process from it's window. The function will return NULL if it can't find the pid
+  * @param window_name The name of the window. 
+  * @example fetch_pid_from_window_name(L"METAL GEAR SOLID 5: THE PHANTOM PAIN")
+  */
+  DWORD fetch_pid_from_window_name(std::wstring window_name);
+
+  /**
    * Fetch the handle of a proces. This function will return NULL if it fail to fetch the process memory
   */
   HANDLE fetch_proces_handle(DWORD pid, DesiredAcess desiredAcess = (DesiredAcess)(static_cast<DWORD>(DesiredAcess::VmRead) | static_cast<DWORD>(DesiredAcess::VmWrite) | static_cast<DWORD>(DesiredAcess::VmOperation)), BOOL inheritHandle = FALSE);
@@ -89,22 +103,12 @@ namespace libGameHack
   template <typename T>
   T readMemory(HANDLE process, DWORD address);
 
+  /** Used to read memory when the cheat is a dll */
   template <typename T>
-  void writeMemory(HANDLE proc, LPVOID adr, T val);
+  T readMemory(LPVOID adr);
 
-  enum class MemoryProtectionType : DWORD
-  {
-    NoAcess = 0x01,
-    ReadOnly = 0x02,
-    ReadWrite = 0x04,
-    WriteCopy = 0x08,
-    Execute = 0x10,
-    ExecuteRead = 0x20,
-    ExecuteReadWrite = 0x40,
-    Guard = 0x100,
-    NoCache = 0x200,
-    WriteCombine = 0x400
-  };
+  template <typename T>
+  T readMemory(DWORD adr);
 
   template <typename T>
   MemoryProtectionType protectMemory(HANDLE proc, LPVOID adr, MemoryProtectionType prot);
@@ -122,18 +126,14 @@ namespace libGameHack
 
   DWORD GetProcessThreadID(HANDLE Process);
 
-  /** Used to read memory when the cheat is a dll */
-  template <typename T>
-  T readMemory(LPVOID adr);
-  
-  template <typename T>
-  T readMemory(DWORD adr);
-
   /**
   * Used to write memory when the cheat is a dll
   */
   template <typename T>
   void writeMemory(LPVOID adr, T val);
+
+  template <typename T>
+  void writeMemory(HANDLE proc, LPVOID adr, T val);
 
   /**
   * Used to point memory when the cheat is a dll
